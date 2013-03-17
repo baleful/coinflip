@@ -1,0 +1,1 @@
+Coinflip is a mixed Scala/Java project attempting to create a multiplayer game using Akka FSM as an event queue for the game. Obviously multiplayer coin flipping isn't likely to catch on as a game, but it makes for a neat test case.
