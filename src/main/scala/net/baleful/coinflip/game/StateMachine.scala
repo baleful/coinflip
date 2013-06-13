@@ -34,22 +34,11 @@ class StateMachine(val config: Config, val game: Game) extends Actor with FSM[St
             if (game.addPlayer(cmd)) {
                 val timer: TimerInfo = new TimerInfo(config.getSecondsToTakeCalls())
                 goto(TakingCalls) using TimeInfo(timer) forMax timer.remainingTimer
+            } else {
+                stay
             }
-            else {
-              stay
-            }
-        }
-        case Event(cmd: GetGameInfo, _) => {
-            game.getGameInfo(cmd)
-
-            stay
         }
         case Event(cmd: LeaveGame, _) => {
-            game.illegalCommand(cmd)
-
-            stay
-        }
-        case Event(cmd: CallIt, _) => {
             game.illegalCommand(cmd)
 
             stay
@@ -62,27 +51,15 @@ class StateMachine(val config: Config, val game: Game) extends Actor with FSM[St
 
             if (game.haveAllPlayersMadeCalls()) {
                 goto(EndingRound)
+            } else {
+                stay using timer forMax timer.timer.remainingTimer()
             }
-            else {
-            	stay using timer forMax timer.timer.remainingTimer()
-            }
-        }
-        case Event(cmd: JoinGame, timer: TimeInfo) => {
-            game.addPlayer(cmd)
-
-            stay using timer forMax timer.timer.remainingTimer()
-        }
-        case Event(cmd: GetGameInfo, timer: TimeInfo) => {
-            game.getGameInfo(cmd)
-
-            stay using timer forMax timer.timer.remainingTimer()
         }
         case Event(cmd: LeaveGame, timer: TimeInfo) => {
             if (game.removePlayer(cmd) && game.isGameEmpty()) {
                 goto(WaitingForPlayers)
-            }
-            else {
-            	stay using timer forMax timer.timer.remainingTimer()
+            } else {
+                stay using timer forMax timer.timer.remainingTimer()
             }
         }
         case Event(StateTimeout, _) => {
@@ -92,32 +69,50 @@ class StateMachine(val config: Config, val game: Game) extends Actor with FSM[St
     }
 
     when(EndingRound) {
-        case Event(cmd: CallIt, timer: TimeInfo) => {
-            game.illegalCommand(cmd)
-
-            stay using timer forMax timer.timer.remainingTimer()
-        }
-        case Event(cmd: JoinGame, timer: TimeInfo) => {
-            game.addPlayer(cmd)
-
-            stay using timer forMax timer.timer.remainingTimer()
-        }
-        case Event(cmd: GetGameInfo, timer: TimeInfo) => {
-            game.getGameInfo(cmd)
-
-            stay using timer forMax timer.timer.remainingTimer()
-        }
         case Event(cmd: LeaveGame, timer: TimeInfo) => {
             if (game.removePlayer(cmd) && game.isGameEmpty()) {
                 goto(WaitingForPlayers)
-            }
-            else {
-            	stay using timer forMax timer.timer.remainingTimer()
+            } else {
+                stay using timer forMax timer.timer.remainingTimer()
             }
         }
         case Event(StateTimeout, _) => {
             val timer: TimerInfo = new TimerInfo(config.getSecondsToTakeCalls())
             goto(TakingCalls) using TimeInfo(timer) forMax timer.remainingTimer
+        }
+    }
+
+    whenUnhandled {
+        /* Handles commands that come in state where they are not allowed
+         * or that do not affect the state of the game. Most handlings
+         * come in pairs. The first handling is for when there is timing
+         * data involved. The second handling is for all other data
+         * cases.
+         */
+        case Event(cmd: GetGameInfo, timer: TimeInfo) => {
+            game.getGameInfo(cmd)
+
+            stay using timer forMax timer.timer.remainingTimer()
+        }
+        case Event(cmd: GetGameInfo, _) => {
+            game.getGameInfo(cmd)
+
+            stay
+        }
+        case Event(cmd: CallIt, timer: TimeInfo) => {
+            game.illegalCommand(cmd)
+
+            stay using timer forMax timer.timer.remainingTimer()
+        }
+        case Event(cmd: CallIt, _) => {
+            game.illegalCommand(cmd)
+
+            stay
+        }
+        case Event(cmd: JoinGame, timer: TimeInfo) => {
+            game.addPlayer(cmd)
+
+            stay using timer forMax timer.timer.remainingTimer()
         }
     }
 
