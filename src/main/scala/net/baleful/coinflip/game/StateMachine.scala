@@ -111,8 +111,9 @@ class StateMachine(val config: Config, val game: Game) extends Actor with FSM[St
             if (game.removePlayer(cmd) && game.isGameEmpty()) {
                 goto(WaitingForPlayers)
             }
-
-            stay using timer forMax timer.timer.remainingTimer()
+            else {
+            	stay using timer forMax timer.timer.remainingTimer()
+            }
         }
         case Event(StateTimeout, _) => {
             val timer: TimerInfo = new TimerInfo(config.getSecondsToTakeCalls())
