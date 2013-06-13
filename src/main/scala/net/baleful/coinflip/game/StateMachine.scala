@@ -121,19 +121,13 @@ class StateMachine(val config: Config, val game: Game) extends Actor with FSM[St
     }
 
     onTransition {
-        case WaitingForPlayers -> TakingCalls => {
-            game.startRound()
-        }
-        case EndingRound -> TakingCalls => {
+        case _ -> TakingCalls => {
             game.startRound()
         }
         case TakingCalls -> EndingRound => {
             game.endRound()
         }
-        case EndingRound -> WaitingForPlayers => {
-            game.reset()
-        }
-        case TakingCalls -> WaitingForPlayers => {
+        case _ -> WaitingForPlayers => {
             game.reset()
         }
     }
