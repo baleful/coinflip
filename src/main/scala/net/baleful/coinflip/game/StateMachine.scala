@@ -18,10 +18,10 @@ object StateMachine {
 }
 
 class TimerInfo(secondsToWait: Int) {
-    val startTime: Long = System.currentTimeMillis()
-    val endTime: Long = startTime + (secondsToWait * 1000)
+    def now: Long = System.currentTimeMillis()
+    val endTime: Long = now + (secondsToWait * 1000)
 
-    def remainingTimer(): Duration = Duration(endTime - startTime, "millis")
+    def remainingTimer(): Duration = Duration(endTime - now, "millis")
 }
 
 class StateMachine(val config: Config, val game: Game) extends Actor with FSM[StateMachine.State, StateMachine.Data] {
