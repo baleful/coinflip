@@ -50,7 +50,8 @@ class StateMachine(val config: Config, val game: Game) extends Actor with FSM[St
             game.call(cmd)
 
             if (game.haveAllPlayersMadeCalls()) {
-                goto(EndingRound)
+                val timer: TimerInfo = new TimerInfo(config.getSecondsToEndRound())
+                goto(EndingRound) using TimeInfo(timer) forMax timer.remainingTimer
             } else {
                 stay using timer forMax timer.timer.remainingTimer()
             }
